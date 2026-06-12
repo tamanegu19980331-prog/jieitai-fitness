@@ -394,8 +394,7 @@ export default function CoachPage() {
           <button onClick={generateMenu} disabled={loading} className="flex-1 py-4 border border-green-500 bg-green-900/30 text-green-300 font-bold tracking-widest hover:bg-green-800/50 transition-all disabled:opacity-50">
             {loading ? '作戦立案中...' : '▶ 訓練開始'}
           </button>
-          {speaking && (
-  <button onClick={() => {
+          {menu && !speaking && (  <button onClick={() => {
     const allExercises = [...(menu?.warmup ?? []), ...(menu?.main ?? []), ...(menu?.cooldown ?? [])];    const menuText = allExercises.map((e: Exercise) => `${e.name}、${e.sets}セット、${e.reps}、次の訓練に移れ！`).join('。休むな！続けろ！。');
     speak(menuText);
   }} className="px-6 py-4 border border-green-500 bg-green-900/30 text-green-400 font-bold">

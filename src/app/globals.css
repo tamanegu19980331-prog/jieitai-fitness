@@ -1,0 +1,339 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* ── 自衛隊教官ピクセルキャラ ── */
+.instructor-scene {
+  width: 120px;
+  height: 160px;
+  image-rendering: pixelated;
+}
+
+.instructor-shadow {
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  width: 72px;
+  height: 8px;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.45);
+  border-radius: 50%;
+}
+
+.instructor-body {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  transition: transform 0.15s ease;
+}
+
+.instructor-body--speaking {
+  animation: instructor-bounce 0.45s ease-in-out infinite;
+}
+
+.instructor-cap {
+  position: relative;
+  width: 56px;
+  height: 16px;
+  margin: 0 auto;
+  background: #2d4a2d;
+  border: 2px solid #1a3d1a;
+  box-shadow:
+    inset 0 -4px 0 #3d6b3d,
+    0 2px 0 #1a3d1a;
+}
+
+.instructor-cap__band {
+  position: absolute;
+  bottom: 2px;
+  left: 4px;
+  right: 4px;
+  height: 4px;
+  background: #1a3d1a;
+}
+
+.instructor-cap__badge {
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  transform: translateX(-50%);
+  background: #c8a040;
+  border: 2px solid #8a7020;
+  box-shadow: 0 0 0 1px #1a3d1a;
+}
+
+.instructor-head {
+  width: 48px;
+  height: 36px;
+  margin: -2px auto 0;
+  background: #d4a574;
+  border: 2px solid #1a3d1a;
+  box-shadow: inset 0 -4px 0 #b8885a;
+}
+
+.instructor-face {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.instructor-eyes {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 10px 0;
+}
+
+.instructor-eye {
+  width: 6px;
+  height: 6px;
+  background: #1a1a1a;
+  box-shadow: 0 0 0 1px #0a0a0a;
+}
+
+.instructor-body--speaking .instructor-eye {
+  animation: instructor-blink 2.5s step-start infinite;
+}
+
+.instructor-mouth {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  width: 12px;
+  height: 2px;
+  transform: translateX(-50%);
+  background: #1a1a1a;
+  transition: height 0.08s ease, width 0.08s ease;
+}
+
+.instructor-mouth--speaking {
+  animation: instructor-talk 0.18s steps(2) infinite;
+}
+
+.instructor-uniform {
+  position: relative;
+  width: 64px;
+  height: 44px;
+  margin: 0 auto;
+  background: #3d6b3d;
+  border: 2px solid #1a3d1a;
+  box-shadow:
+    inset 0 4px 0 #4a7c4a,
+    inset 0 -4px 0 #2d4a2d;
+}
+
+.instructor-collar {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 20px;
+  height: 8px;
+  transform: translateX(-50%);
+  background: #2d4a2d;
+  border-bottom: 2px solid #1a3d1a;
+}
+
+.instructor-rank {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  display: flex;
+  gap: 3px;
+  transform: translateX(-50%);
+}
+
+.instructor-rank span {
+  display: block;
+  width: 8px;
+  height: 3px;
+  background: #c8a040;
+  border: 1px solid #8a7020;
+}
+
+.instructor-arm {
+  position: absolute;
+  top: 8px;
+  width: 12px;
+  height: 28px;
+  background: #3d6b3d;
+  border: 2px solid #1a3d1a;
+}
+
+.instructor-arm--left {
+  left: -10px;
+  transform: rotate(8deg);
+  transform-origin: top center;
+}
+
+.instructor-arm--right {
+  right: -10px;
+  transform: rotate(-8deg);
+  transform-origin: top center;
+}
+
+.instructor-arm--speaking.instructor-arm--left {
+  animation: instructor-arm-left 0.5s ease-in-out infinite alternate;
+}
+
+.instructor-arm--speaking.instructor-arm--right {
+  animation: instructor-arm-right 0.5s ease-in-out infinite alternate;
+}
+
+.instructor-legs {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  margin-top: -2px;
+}
+
+.instructor-leg {
+  width: 18px;
+  height: 24px;
+  background: #2d4a2d;
+  border: 2px solid #1a3d1a;
+  box-shadow: inset 0 -6px 0 #1a1a1a;
+}
+
+.instructor-body--speaking .instructor-leg--left {
+  animation: instructor-leg-left 0.45s ease-in-out infinite alternate;
+}
+
+.instructor-body--speaking .instructor-leg--right {
+  animation: instructor-leg-right 0.45s ease-in-out infinite alternate;
+}
+
+/* ── 吹き出し ── */
+.speech-bubble {
+  position: relative;
+  border: 2px solid #3d6b3d;
+  background: #0a120a;
+  box-shadow:
+    inset 0 1px 0 rgba(107, 158, 107, 0.2),
+    0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+.speech-bubble::before {
+  content: "";
+  position: absolute;
+  top: 48px;
+  left: -14px;
+  width: 0;
+  height: 0;
+  border-top: 10px solid transparent;
+  border-bottom: 10px solid transparent;
+  border-right: 14px solid #3d6b3d;
+}
+
+.speech-bubble::after {
+  content: "";
+  position: absolute;
+  top: 50px;
+  left: -10px;
+  width: 0;
+  height: 0;
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+  border-right: 10px solid #0a120a;
+}
+
+@media (max-width: 1023px) {
+  .speech-bubble::before,
+  .speech-bubble::after {
+    display: none;
+  }
+}
+
+@keyframes instructor-bounce {
+  0%,
+  100% {
+    transform: translateX(-50%) translateY(0);
+  }
+  50% {
+    transform: translateX(-50%) translateY(-3px);
+  }
+}
+
+@keyframes instructor-talk {
+  0% {
+    width: 12px;
+    height: 2px;
+    border-radius: 0;
+  }
+  50% {
+    width: 10px;
+    height: 8px;
+    border-radius: 0 0 4px 4px;
+  }
+}
+
+@keyframes instructor-blink {
+  0%,
+  90%,
+  100% {
+    transform: scaleY(1);
+  }
+  95% {
+    transform: scaleY(0.1);
+  }
+}
+
+@keyframes instructor-arm-left {
+  from {
+    transform: rotate(8deg);
+  }
+  to {
+    transform: rotate(18deg);
+  }
+}
+
+@keyframes instructor-arm-right {
+  from {
+    transform: rotate(-8deg);
+  }
+  to {
+    transform: rotate(-18deg);
+  }
+}
+
+@keyframes instructor-leg-left {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-2px);
+  }
+}
+
+@keyframes instructor-leg-right {
+  from {
+    transform: translateY(-2px);
+  }
+  to {
+    transform: translateY(0);
+  }
+}

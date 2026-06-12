@@ -14,7 +14,7 @@ export default function LoginPage() {
           appearance={{theme:ThemeSupa}}
           theme="dark"
           providers={[]}
-          redirectTo="http://localhost:3000/auth/callback"/>
+          redirectTo="https://jieitai-fitness.vercel.app/auth/callback"/>
           </div>
     </div>
   )

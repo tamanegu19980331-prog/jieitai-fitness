@@ -2,9 +2,16 @@
 import { Auth } from '@supabase/auth-ui-react'
 import { ThemeSupa } from '@supabase/auth-ui-shared'
 import { createClient } from '@/lib/supabase'
-
+import { useRouter } from 'next/navigation'
 export default function LoginPage() {
   const supabase = createClient()
+  const router = useRouter()
+
+supabase.auth.onAuthStateChange((event, session) => {
+  if (session) {
+    router.push('/coach')
+  }
+})
   return (
     <div style={{minHeight:'100vh',background:'#111',display:'flex',alignItems:'center',justifyContent:'center'}}>
       <div style={{background:'#1a1a1a',padding:'2rem',borderRadius:'1rem',width:'100%',maxWidth:'400px'}}>

@@ -350,7 +350,7 @@ export default function CoachPage() {
       setMenu(data.menu);
       const allExercises = [...data.menu.warmup, ...data.menu.main, ...data.menu.cooldown];
       const menuText = allExercises.map((e: Exercise) => `${e.name}。${e.sets}セット、${e.reps}。次の訓練に移れ！`).join('。休むな！続けろ！。');
-      speak(menuText);
+
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'エラーが発生しました');
     } finally { setLoading(false); }

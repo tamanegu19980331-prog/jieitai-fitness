@@ -1,3 +1,4 @@
+export const maxDuration = 60;
 import { NextRequest, NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
 
@@ -32,13 +33,13 @@ export async function POST(req: NextRequest) {
     };
 
     const response = await client.messages.create({
-      model: 'claude-sonnet-4-5',
-      max_tokens: 2000,
+      model: 'claude-haiku-4-5-20251001',
+            max_tokens: 2000,
       messages: [{
         role: 'user',
-        content: `部隊:${divisions[division]} 練度:${levels[level]} 自宅でできる自衛隊式トレーニングメニューをJSON形式のみで返せ。必ずJSON以外は出力するな。{"missionName":"作戦名","warmup":[{"name":"種目名","sets":"セット数","reps":"回数","rest":"休憩","icon":"絵文字","tip":"ポイント"}],"main":[{"name":"種目名","sets":"セット数","reps":"回数","rest":"休憩","icon":"絵文字","tip":"ポイント"}],"cooldown":[{"name":"種目名","sets":"セット数","reps":"回数","rest":"休憩","icon":"絵文字","tip":"ポイント"}],"commanders_note":"教官の一言"}`
+        content: `部隊:${divisions[division]} 練度:${levels[level]} 自衛隊式トレーニングをJSON形式のみで返せ。{"missionName":"作戦名","warmup":[{"name":"種目名","sets":"3","reps":"10回","rest":"60秒","icon":"絵文字","tip":"STEP1:〇〇 STEP2:〇〇 STEP3:〇〇 NG:〇〇"}],"main":[{"name":"種目名","sets":"3","reps":"10回","rest":"60秒","icon":"絵文字","tip":"STEP1:〇〇 STEP2:〇〇 STEP3:〇〇 NG:〇〇"}],"cooldown":[{"name":"種目名","sets":"2","reps":"10回","rest":"60秒","icon":"絵文字","tip":"STEP1:〇〇 STEP2:〇〇 STEP3:〇〇 NG:〇〇"}],"commanders_note":"一言"}`
       }],
-    });
+      });
 
     const content = response.content[0];
     if (content.type !== 'text') throw new Error('Invalid response type');
@@ -49,7 +50,8 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ menu });
   } catch (error) {
-    console.error('Error:', error);
-    return NextResponse.json({ error: '訓練メニューの生成中にエラーが発生しました。' }, { status: 500 });
+    console.error('Error:', JSON.stringify(error, null, 2));
+    const errMsg = error instanceof Error ? error.message : JSON.stringify(error);
+    return NextResponse.json({ error: errMsg }, { status: 500 });
   }
 }

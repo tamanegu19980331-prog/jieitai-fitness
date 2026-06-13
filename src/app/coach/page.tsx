@@ -1,6 +1,5 @@
-'use client';
-
-import React, { useState } from 'react';
+"use client";
+import React, { useState, useRef } from 'react';
 import Link from 'next/link';
 
 type Division = 'ground' | 'maritime' | 'air';
@@ -35,256 +34,21 @@ const levelInfo = {
   ranger: { label: 'レンジャー', sublabel: '上級', icon: '⭐⭐⭐' },
 };
 
-function PushupAnimation() {
+function ExerciseCard({ exercise, isActive, onClick }: { exercise: Exercise; isActive: boolean; onClick: () => void }) {
   return (
-    <div className="flex items-center justify-center h-32 bg-green-950/30 rounded mb-4">
-      <svg width="200" height="100" viewBox="0 0 200 100">
-        <style>{`
-          @keyframes pushup-body {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-20px); }
-          }
-          .pushup-body { animation: pushup-body 1.2s ease-in-out infinite; transform-origin: 140px 70px; }
-        `}</style>
-        <g className="pushup-body">
-          <circle cx="60" cy="30" r="10" fill="#4ade80" />
-          <line x1="60" y1="40" x2="60" y2="70" stroke="#4ade80" strokeWidth="3" />
-          <line x1="60" y1="50" x2="30" y2="65" stroke="#4ade80" strokeWidth="3" />
-          <line x1="60" y1="50" x2="90" y2="65" stroke="#4ade80" strokeWidth="3" />
-          <line x1="60" y1="70" x2="40" y2="85" stroke="#4ade80" strokeWidth="3" />
-          <line x1="60" y1="70" x2="80" y2="85" stroke="#4ade80" strokeWidth="3" />
-          <circle cx="30" cy="67" r="4" fill="#4ade80" />
-          <circle cx="90" cy="67" r="4" fill="#4ade80" />
-        </g>
-        <line x1="20" y1="90" x2="180" y2="90" stroke="#166534" strokeWidth="2" />
-        <text x="100" y="98" textAnchor="middle" fill="#4ade80" fontSize="8">腕立て伏せ</text>
-      </svg>
-    </div>
-  );
-}
-
-function SquatAnimation() {
-  return (
-    <div className="flex items-center justify-center h-32 bg-green-950/30 rounded mb-4">
-      <svg width="200" height="100" viewBox="0 0 200 100">
-        <style>{`
-          @keyframes squat-body {
-            0%, 100% { transform: translateY(0px) scaleY(1); }
-            50% { transform: translateY(15px) scaleY(0.75); }
-          }
-          .squat-body { animation: squat-body 1.2s ease-in-out infinite; transform-origin: 100px 50px; }
-        `}</style>
-        <g className="squat-body">
-          <circle cx="100" cy="20" r="10" fill="#4ade80" />
-          <line x1="100" y1="30" x2="100" y2="60" stroke="#4ade80" strokeWidth="3" />
-          <line x1="100" y1="40" x2="75" y2="50" stroke="#4ade80" strokeWidth="3" />
-          <line x1="100" y1="40" x2="125" y2="50" stroke="#4ade80" strokeWidth="3" />
-          <line x1="100" y1="60" x2="80" y2="80" stroke="#4ade80" strokeWidth="3" />
-          <line x1="100" y1="60" x2="120" y2="80" stroke="#4ade80" strokeWidth="3" />
-          <line x1="80" y1="80" x2="75" y2="88" stroke="#4ade80" strokeWidth="3" />
-          <line x1="120" y1="80" x2="125" y2="88" stroke="#4ade80" strokeWidth="3" />
-        </g>
-        <line x1="20" y1="90" x2="180" y2="90" stroke="#166534" strokeWidth="2" />
-        <text x="100" y="98" textAnchor="middle" fill="#4ade80" fontSize="8">スクワット</text>
-      </svg>
-    </div>
-  );
-}
-
-function PlankAnimation() {
-  return (
-    <div className="flex items-center justify-center h-32 bg-green-950/30 rounded mb-4">
-      <svg width="200" height="100" viewBox="0 0 200 100">
-        <style>{`
-          @keyframes plank-pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.6; }
-          }
-          .plank-body { animation: plank-pulse 2s ease-in-out infinite; }
-        `}</style>
-        <g className="plank-body">
-          <circle cx="150" cy="45" r="10" fill="#4ade80" />
-          <line x1="140" y1="45" x2="50" y2="55" stroke="#4ade80" strokeWidth="4" />
-          <line x1="120" y1="47" x2="110" y2="70" stroke="#4ade80" strokeWidth="3" />
-          <line x1="80" y1="52" x2="70" y2="70" stroke="#4ade80" strokeWidth="3" />
-          <circle cx="110" cy="72" r="4" fill="#4ade80" />
-          <circle cx="70" cy="72" r="4" fill="#4ade80" />
-        </g>
-        <line x1="20" y1="75" x2="180" y2="75" stroke="#166534" strokeWidth="2" />
-        <text x="100" y="90" textAnchor="middle" fill="#4ade80" fontSize="8">プランク（体幹維持）</text>
-      </svg>
-    </div>
-  );
-}
-
-function BurpeeAnimation() {
-  return (
-    <div className="flex items-center justify-center h-32 bg-green-950/30 rounded mb-4">
-      <svg width="200" height="100" viewBox="0 0 200 100">
-        <style>{`
-          @keyframes burpee-jump {
-            0% { transform: translateY(0px) scaleY(1); }
-            25% { transform: translateY(-25px) scaleY(1.1); }
-            50% { transform: translateY(0px) scaleY(0.7); }
-            75% { transform: translateY(-10px) scaleY(1.05); }
-            100% { transform: translateY(0px) scaleY(1); }
-          }
-          .burpee-body { animation: burpee-jump 1.5s ease-in-out infinite; transform-origin: 100px 70px; }
-        `}</style>
-        <g className="burpee-body">
-          <circle cx="100" cy="20" r="10" fill="#4ade80" />
-          <line x1="100" y1="30" x2="100" y2="60" stroke="#4ade80" strokeWidth="3" />
-          <line x1="100" y1="40" x2="75" y2="30" stroke="#4ade80" strokeWidth="3" />
-          <line x1="100" y1="40" x2="125" y2="30" stroke="#4ade80" strokeWidth="3" />
-          <line x1="100" y1="60" x2="80" y2="80" stroke="#4ade80" strokeWidth="3" />
-          <line x1="100" y1="60" x2="120" y2="80" stroke="#4ade80" strokeWidth="3" />
-        </g>
-        <line x1="20" y1="88" x2="180" y2="88" stroke="#166534" strokeWidth="2" />
-        <text x="100" y="98" textAnchor="middle" fill="#4ade80" fontSize="8">バーピー</text>
-      </svg>
-    </div>
-  );
-}
-
-function MountainClimberAnimation() {
-  return (
-    <div className="flex items-center justify-center h-32 bg-green-950/30 rounded mb-4">
-      <svg width="200" height="100" viewBox="0 0 200 100">
-        <style>{`
-          @keyframes mountain-left {
-            0%, 100% { transform: translateX(0px) translateY(0px); }
-            50% { transform: translateX(15px) translateY(-10px); }
-          }
-          @keyframes mountain-right {
-            0%, 100% { transform: translateX(0px) translateY(0px); }
-            50% { transform: translateX(-15px) translateY(-10px); }
-          }
-          .mountain-leg-left { animation: mountain-left 0.8s ease-in-out infinite; transform-origin: 100px 60px; }
-          .mountain-leg-right { animation: mountain-right 0.8s ease-in-out infinite; transform-origin: 100px 60px; }
-        `}</style>
-        <circle cx="150" cy="35" r="10" fill="#4ade80" />
-        <line x1="140" y1="35" x2="50" y2="55" stroke="#4ade80" strokeWidth="4" />
-        <line x1="130" y1="37" x2="120" y2="55" stroke="#4ade80" strokeWidth="3" />
-        <circle cx="50" cy="57" r="4" fill="#4ade80" />
-        <circle cx="120" cy="57" r="4" fill="#4ade80" />
-        <g className="mountain-leg-left">
-          <line x1="110" y1="50" x2="95" y2="70" stroke="#4ade80" strokeWidth="3" />
-        </g>
-        <g className="mountain-leg-right">
-          <line x1="90" y1="53" x2="110" y2="70" stroke="#4ade80" strokeWidth="3" />
-        </g>
-        <line x1="20" y1="75" x2="180" y2="75" stroke="#166534" strokeWidth="2" />
-        <text x="100" y="88" textAnchor="middle" fill="#4ade80" fontSize="8">マウンテンクライマー</text>
-      </svg>
-    </div>
-  );
-}
-
-function JumpAnimation() {
-  return (
-    <div className="flex items-center justify-center h-32 bg-green-950/30 rounded mb-4">
-      <svg width="200" height="100" viewBox="0 0 200 100">
-        <style>{`
-          @keyframes jump-up {
-            0%, 100% { transform: translateY(0px); }
-            40%, 60% { transform: translateY(-25px); }
-          }
-          .jump-body { animation: jump-up 1s ease-in-out infinite; transform-origin: 100px 80px; }
-        `}</style>
-        <g className="jump-body">
-          <circle cx="100" cy="20" r="10" fill="#4ade80" />
-          <line x1="100" y1="30" x2="100" y2="60" stroke="#4ade80" strokeWidth="3" />
-          <line x1="100" y1="40" x2="70" y2="30" stroke="#4ade80" strokeWidth="3" />
-          <line x1="100" y1="40" x2="130" y2="30" stroke="#4ade80" strokeWidth="3" />
-          <line x1="100" y1="60" x2="80" y2="80" stroke="#4ade80" strokeWidth="3" />
-          <line x1="100" y1="60" x2="120" y2="80" stroke="#4ade80" strokeWidth="3" />
-        </g>
-        <line x1="20" y1="88" x2="180" y2="88" stroke="#166534" strokeWidth="2" />
-        <text x="100" y="98" textAnchor="middle" fill="#4ade80" fontSize="8">ジャンプ系</text>
-      </svg>
-    </div>
-  );
-}
-
-function CrunchAnimation() {
-  return (
-    <div className="flex items-center justify-center h-32 bg-green-950/30 rounded mb-4">
-      <svg width="200" height="100" viewBox="0 0 200 100">
-        <style>{`
-          @keyframes crunch-up {
-            0%, 100% { transform: rotate(0deg); }
-            50% { transform: rotate(-30deg); }
-          }
-          .crunch-upper { animation: crunch-up 1.2s ease-in-out infinite; transform-origin: 100px 65px; }
-        `}</style>
-        <line x1="50" y1="65" x2="150" y2="65" stroke="#4ade80" strokeWidth="4" />
-        <line x1="50" y1="65" x2="40" y2="80" stroke="#4ade80" strokeWidth="3" />
-        <line x1="150" y1="65" x2="160" y2="80" stroke="#4ade80" strokeWidth="3" />
-        <g className="crunch-upper">
-          <circle cx="100" cy="40" r="10" fill="#4ade80" />
-          <line x1="100" y1="50" x2="100" y2="65" stroke="#4ade80" strokeWidth="3" />
-          <line x1="100" y1="55" x2="75" y2="50" stroke="#4ade80" strokeWidth="3" />
-          <line x1="100" y1="55" x2="125" y2="50" stroke="#4ade80" strokeWidth="3" />
-        </g>
-        <line x1="20" y1="85" x2="180" y2="85" stroke="#166534" strokeWidth="2" />
-        <text x="100" y="95" textAnchor="middle" fill="#4ade80" fontSize="8">腹筋・クランチ</text>
-      </svg>
-    </div>
-  );
-}
-
-function DefaultAnimation() {
-  return (
-    <div className="flex items-center justify-center h-32 bg-green-950/30 rounded mb-4">
-      <svg width="200" height="100" viewBox="0 0 200 100">
-        <style>{`
-          @keyframes default-move {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
-          }
-          .default-body { animation: default-move 1s ease-in-out infinite; transform-origin: 100px 50px; }
-        `}</style>
-        <g className="default-body">
-          <circle cx="100" cy="20" r="10" fill="#4ade80" />
-          <line x1="100" y1="30" x2="100" y2="60" stroke="#4ade80" strokeWidth="3" />
-          <line x1="100" y1="40" x2="75" y2="55" stroke="#4ade80" strokeWidth="3" />
-          <line x1="100" y1="40" x2="125" y2="55" stroke="#4ade80" strokeWidth="3" />
-          <line x1="100" y1="60" x2="80" y2="80" stroke="#4ade80" strokeWidth="3" />
-          <line x1="100" y1="60" x2="120" y2="80" stroke="#4ade80" strokeWidth="3" />
-        </g>
-        <line x1="20" y1="88" x2="180" y2="88" stroke="#166534" strokeWidth="2" />
-        <text x="100" y="98" textAnchor="middle" fill="#4ade80" fontSize="8">トレーニング</text>
-      </svg>
-    </div>
-  );
-}
-
-function ExerciseAnimation({ name }: { name: string }) {
-  if (name.includes('腕立て') || name.includes('プッシュアップ')) return <PushupAnimation />;
-  if (name.includes('スクワット')) return <SquatAnimation />;
-  if (name.includes('プランク')) return <PlankAnimation />;
-  if (name.includes('バーピー')) return <BurpeeAnimation />;
-  if (name.includes('マウンテン')) return <MountainClimberAnimation />;
-  if (name.includes('ジャンプ') || name.includes('ジャンピング')) return <JumpAnimation />;
-  if (name.includes('腹筋') || name.includes('クランチ')) return <CrunchAnimation />;
-  return <DefaultAnimation />;
-}
-
-function ExerciseCard({ exercise, onClick }: { exercise: Exercise; onClick: () => void }) {
-  return (
-    <div className="border border-green-800 p-4 bg-green-900/10 hover:bg-green-900/20 cursor-pointer transition-all" onClick={onClick}>
+    <div onClick={onClick} className={`border p-4 cursor-pointer transition-all ${isActive ? 'border-green-400 bg-green-900/40' : 'border-green-800 bg-green-900/10 hover:bg-green-900/20'}`}>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <span className="text-2xl">{exercise.icon}</span>
           <div>
-            <div className="font-bold text-green-300 text-sm">{exercise.name}</div>
+            <div className={`font-bold text-sm ${isActive ? 'text-green-300' : 'text-green-400'}`}>{exercise.name}</div>
             <div className="text-xs text-green-600 mt-1">{exercise.sets}セット × {exercise.reps}</div>
           </div>
         </div>
         <div className="text-right">
           <div className="text-xs text-green-700">休憩</div>
           <div className="text-xs text-green-500">{exercise.rest}</div>
-          <div className="text-xs text-green-700 mt-1">タップ→詳細</div>
+          {isActive && <div className="text-xs text-green-300 mt-1 font-bold">▶ 実施中</div>}
         </div>
       </div>
     </div>
@@ -297,48 +61,80 @@ export default function CoachPage() {
   const [menu, setMenu] = useState<TrainingMenu | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [speaking, setSpeaking] = useState(false);
   const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
+  const [currentExerciseIndex, setCurrentExerciseIndex] = useState<number>(-1);
+  const [isTraining, setIsTraining] = useState<boolean>(false);
+  const [timeLeft, setTimeLeft] = useState<number>(0);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const cleanText = (text: string) => {
-    return text.replace(/\*\*/g, '').replace(/\*/g, '').replace(/##/g, '')
-      .replace(/#/g, '').replace(/：/g, '').replace(/:/g, '')
-      .replace(/- /g, '').replace(/【/g, '').replace(/】/g, '')
-      .replace(/「/g, '').replace(/」/g, '').replace(/・/g, '').trim();
+  const getAllExercises = () => {
+    if (!menu) return [];
+    return [...menu.warmup, ...menu.main, ...menu.cooldown];
   };
 
-  const speak = (text: string) => {
+  const speakText = (text: string, onEnd?: () => void) => {
     window.speechSynthesis.cancel();
-    
-    const utterThis = () => {
+    const trySpeak = () => {
       const voices = window.speechSynthesis.getVoices();
       const maleVoice = voices.find(v => v.lang === 'ja-JP' && (v.name.includes('Male') || v.name.includes('Otoya'))) || voices.find(v => v.lang === 'ja-JP');
-      
-      const intro = new SpeechSynthesisUtterance('訓練を開始する！');
-      intro.lang = 'ja-JP'; intro.pitch = 0.6; intro.rate = 0.85;
-      if (maleVoice) intro.voice = maleVoice;
-      
-      const main = new SpeechSynthesisUtterance(cleanText(text));
-      main.lang = 'ja-JP'; main.pitch = 0.6; main.rate = 0.85;
-      if (maleVoice) main.voice = maleVoice;
-      
-      setSpeaking(true);
-      intro.onend = () => { window.speechSynthesis.speak(main); };
-      main.onend = () => { setSpeaking(false); };
-      window.speechSynthesis.speak(intro);
+      const utt = new SpeechSynthesisUtterance(text);
+      utt.lang = 'ja-JP'; utt.pitch = 0.6; utt.rate = 0.85;
+      if (maleVoice) utt.voice = maleVoice;
+      if (onEnd) utt.onend = onEnd;
+      window.speechSynthesis.speak(utt);
     };
-  
     if (window.speechSynthesis.getVoices().length === 0) {
-      window.speechSynthesis.onvoiceschanged = utterThis;
+      window.speechSynthesis.onvoiceschanged = trySpeak;
     } else {
-      utterThis();
+      trySpeak();
     }
   };
 
-  const stopSpeaking = () => { window.speechSynthesis.cancel(); setSpeaking(false); };
+  const startExercise = (index: number) => {
+    const exercises = getAllExercises();
+    if (index >= exercises.length) {
+      setIsTraining(false);
+      setCurrentExerciseIndex(-1);
+      speakText('全訓練完了！お疲れ様でした！');
+      return;
+    }
+    const ex = exercises[index];
+    setCurrentExerciseIndex(index);
+    const restSeconds = parseInt(ex.rest) || 30;
+    speakText(`${ex.name}、${ex.sets}セット、${ex.reps}、始め！`, () => {
+      setTimeLeft(restSeconds);
+      let t = restSeconds;
+      if (timerRef.current) clearInterval(timerRef.current);
+      timerRef.current = setInterval(() => {
+        t -= 1;
+        setTimeLeft(t);
+        if (t <= 3 && t > 0) speakText(`${t}`);
+        if (t <= 0) {
+          clearInterval(timerRef.current!);
+          speakText('休め！次の種目へ移れ！', () => {
+            setTimeout(() => startExercise(index + 1), 1500);
+          });
+        }
+      }, 1000);
+    });
+  };
+
+  const startTraining = () => {
+    setIsTraining(true);
+    speakText('訓練開始！', () => startExercise(0));
+  };
+
+  const stopTraining = () => {
+    window.speechSynthesis.cancel();
+    if (timerRef.current) clearInterval(timerRef.current);
+    setIsTraining(false);
+    setCurrentExerciseIndex(-1);
+    setTimeLeft(0);
+  };
 
   const generateMenu = async () => {
-    setLoading(true); setError(''); setMenu(null); stopSpeaking();
+    stopTraining();
+    setLoading(true); setError(''); setMenu(null);
     try {
       const res = await fetch('/api/coach', {
         method: 'POST',
@@ -348,13 +144,12 @@ export default function CoachPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'エラーが発生しました');
       setMenu(data.menu);
-      const allExercises = [...data.menu.warmup, ...data.menu.main, ...data.menu.cooldown];
-      const menuText = allExercises.map((e: Exercise) => `${e.name}。${e.sets}セット、${e.reps}。次の訓練に移れ！`).join('。休むな！続けろ！。');
-
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'エラーが発生しました');
     } finally { setLoading(false); }
   };
+
+  const allExercises = getAllExercises();
 
   return (
     <div className="min-h-screen bg-black text-green-400 font-mono">
@@ -367,6 +162,7 @@ export default function CoachPage() {
           <h1 className="text-3xl font-bold text-green-300 mb-2">訓練計画立案</h1>
           <p className="text-green-600 text-sm">部隊と練度を申告せよ。AI教官が最適な訓練メニューを策定する。</p>
         </div>
+
         <div className="mb-6">
           <div className="text-xs text-green-600 mb-3 tracking-widest">所属部隊</div>
           <div className="grid grid-cols-3 gap-3">
@@ -378,6 +174,7 @@ export default function CoachPage() {
             ))}
           </div>
         </div>
+
         <div className="mb-8">
           <div className="text-xs text-green-600 mb-3 tracking-widest">練度レベル</div>
           <div className="grid grid-cols-3 gap-3">
@@ -390,20 +187,35 @@ export default function CoachPage() {
             ))}
           </div>
         </div>
+
         <div className="flex gap-3 mb-8">
           <button onClick={generateMenu} disabled={loading} className="flex-1 py-4 border border-green-500 bg-green-900/30 text-green-300 font-bold tracking-widest hover:bg-green-800/50 transition-all disabled:opacity-50">
             {loading ? '作戦立案中...' : '▶ 訓練開始'}
           </button>
-          {menu && !speaking && (  <button onClick={() => {
-    const allExercises = [...(menu?.warmup ?? []), ...(menu?.main ?? []), ...(menu?.cooldown ?? [])];    const menuText = allExercises.map((e: Exercise) => `${e.name}、${e.sets}セット、${e.reps}、次の訓練に移れ！`).join('。休むな！続けろ！。');
-    speak(menuText);
-  }} className="px-6 py-4 border border-green-500 bg-green-900/30 text-green-400 font-bold">
-    ▶️ 音声を再生
-  </button>
-)}
-  
+          {menu && !isTraining && (
+            <button onClick={startTraining} className="px-6 py-4 border border-green-400 bg-green-800/50 text-green-300 font-bold">
+              🔊 訓練開始
+            </button>
+          )}
+          {isTraining && (
+            <button onClick={stopTraining} className="px-6 py-4 border border-red-600 bg-red-900/30 text-red-400 font-bold">
+              ⏹ 停止
+            </button>
+          )}
         </div>
+
+        {isTraining && currentExerciseIndex >= 0 && (
+          <div className="border border-green-400 bg-green-900/20 p-6 mb-6 text-center">
+            <div className="text-xs text-green-600 mb-2 tracking-widest">現在の種目</div>
+            <div className="text-2xl font-bold text-green-300 mb-2">{allExercises[currentExerciseIndex]?.icon} {allExercises[currentExerciseIndex]?.name}</div>
+            <div className="text-xs text-green-600 mb-4">{allExercises[currentExerciseIndex]?.sets}セット × {allExercises[currentExerciseIndex]?.reps}</div>
+            <div className="text-5xl font-bold text-green-400">{timeLeft}</div>
+            <div className="text-xs text-green-700 mt-2">秒後に次の種目へ</div>
+          </div>
+        )}
+
         {error && <div className="border border-red-700 bg-red-900/20 p-4 mb-6 text-red-400 text-sm">{error}</div>}
+
         {menu && (
           <div className="space-y-6">
             <div className="border border-green-700 p-4 bg-green-900/10">
@@ -415,7 +227,10 @@ export default function CoachPage() {
               <div key={title}>
                 <div className="text-xs text-green-600 tracking-widest mb-3">{title}</div>
                 <div className="grid gap-3">
-                  {items.map((ex, i) => <ExerciseCard key={i} exercise={ex} onClick={() => setSelectedExercise(ex)} />)}
+                  {items.map((ex, i) => {
+                    const globalIndex = allExercises.indexOf(ex);
+                    return <ExerciseCard key={i} exercise={ex} isActive={currentExerciseIndex === globalIndex} onClick={() => setSelectedExercise(ex)} />;
+                  })}
                 </div>
               </div>
             ))}
@@ -426,10 +241,11 @@ export default function CoachPage() {
           </div>
         )}
       </div>
+
       {selectedExercise && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50" onClick={() => setSelectedExercise(null)}>
           <div className="border border-green-600 bg-black p-6 max-w-sm w-full" onClick={e => e.stopPropagation()}>
-            <ExerciseAnimation name={selectedExercise.name} />
+            <div className="text-center text-4xl mb-4">{selectedExercise.icon}</div>
             <div className="font-bold text-green-300 text-lg mb-4 text-center">{selectedExercise.name}</div>
             <div className="grid grid-cols-3 gap-3 mb-4 text-center">
               <div className="border border-green-800 p-2">
@@ -445,8 +261,8 @@ export default function CoachPage() {
                 <div className="text-green-300 font-bold">{selectedExercise.rest}</div>
               </div>
             </div>
-            <div className="text-xs text-green-600 mb-1">フォームのポイント</div>
-            <div className="text-sm text-green-400 mb-4">{selectedExercise.tip}</div>
+            <div className="text-xs text-green-600 mb-2">フォームのポイント</div>
+            <div className="text-sm text-green-400 mb-4 whitespace-pre-line">{selectedExercise.tip.replace(/STEP/g, '\nSTEP').replace(/⚠️/g, '\n⚠️').trim()}</div>
             <button onClick={() => setSelectedExercise(null)} className="w-full border border-green-700 py-2 text-green-600 hover:text-green-400 text-sm">閉じる</button>
           </div>
         </div>

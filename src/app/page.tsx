@@ -105,7 +105,24 @@ export default function Home() {
         <p className="mt-6 text-[11px] tracking-[0.3em] text-[#4a6a4a]">
           ― 入隊は無料・即日配属 ―
         </p>
-
+{/* パーソナルストーリー */}
+<div className="mt-16 w-full max-w-lg border border-[#2d4a2d] bg-[#0a120a]/80 p-6">
+          <p className="mb-3 text-[10px] font-bold tracking-[0.3em] text-[#5a8a5a]">COMMANDER'S MESSAGE</p>
+          <p className="mb-4 text-sm leading-relaxed text-[#a8c4a0]">
+            入隊前、俺の体重は<span className="font-bold text-[#e8f0e4]">90kg</span>だった。
+            <br />
+            自衛隊に入り、本物の訓練と食事管理を徹底した結果——
+            <br />
+            <span className="font-bold text-[#e8f0e4]">半年で66kgまで絞り、体力検定で1位</span>を取った。
+          </p>
+          <p className="mb-4 text-sm leading-relaxed text-[#a8c4a0]">
+            このアプリは、俺が実際に経験した自衛隊式メソッドをAIで再現したものだ。
+            公務員・消防・警察を目指す人、本気でダイエットしたい人に届けたい。
+          </p>
+          <div className="border-t border-[#2d4a2d] pt-3">
+            <p className="text-[11px] tracking-[0.2em] text-[#5a8a5a]">元自衛隊 × パーソナルトレーナー</p>
+          </div>
+        </div>
         {/* 下部スペック表示 */}
         <div className="mt-20 grid w-full max-w-lg grid-cols-3 gap-px border border-[#2d4a2d] bg-[#2d4a2d]">
           {[

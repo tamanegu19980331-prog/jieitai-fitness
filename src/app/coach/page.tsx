@@ -29,9 +29,24 @@ const divisionInfo = {
 };
 
 const levelInfo = {
-  recruit: { label: '新隊員', sublabel: '初級', icon: '⭐' },
-  general: { label: '一般隊員', sublabel: '中級', icon: '⭐⭐' },
-  ranger: { label: 'レンジャー', sublabel: '上級', icon: '⭐⭐⭐' },
+  recruit: {
+    label: '新隊員', sublabel: '初級', icon: '⭐',
+    description: '運動習慣がない方',
+    targetText: '基礎体力UP・体脂肪を落とす',
+    stats: { weight: '-3kg', pushup: '+5回', run: '-1分' },
+  },
+  general: {
+    label: '一般隊員', sublabel: '中級', icon: '⭐⭐',
+    description: '週1〜2回運動する方',
+    targetText: '引き締まった体・体力検定合格ライン',
+    stats: { weight: '-6kg', pushup: '+10回', run: '-2分' },
+  },
+  ranger: {
+    label: 'レンジャー', sublabel: '上級', icon: '⭐⭐⭐',
+    description: '毎日トレーニングする方',
+    targetText: '自衛隊員レベルの戦闘体型',
+    stats: { weight: '-10kg', pushup: '+20回', run: '-3分' },
+  },
 };
 
 function ExerciseCard({ exercise, isActive, onClick }: { exercise: Exercise; isActive: boolean; onClick: () => void }) {
@@ -177,14 +192,43 @@ export default function CoachPage() {
 
         <div className="mb-8">
           <div className="text-xs text-green-600 mb-3 tracking-widest">練度レベル</div>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-3 gap-3 mb-4">
             {(Object.keys(levelInfo) as Level[]).map((l) => (
               <button key={l} onClick={() => setLevel(l)} className={`p-4 border rounded text-center transition-all ${level === l ? 'border-green-400 bg-green-900/50 text-green-300' : 'border-green-800 text-green-600 hover:border-green-600'}`}>
                 <div className="text-sm mb-1">{levelInfo[l].icon}</div>
                 <div className="text-xs font-bold">{levelInfo[l].label}</div>
                 <div className="text-xs text-green-700">{levelInfo[l].sublabel}</div>
+                <div className="text-[10px] text-green-600 mt-1">{levelInfo[l].description}</div>
               </button>
             ))}
+          </div>
+
+          <div className="border border-green-800 bg-green-900/10 p-4 rounded">
+            <div className="text-[10px] text-green-600 mb-3 tracking-widest text-center">目指せる体型</div>
+            <div className="flex justify-center mb-3">
+              <img
+                src={`/${level}.png`}
+                alt={levelInfo[level].label}
+                className="h-64 object-contain"
+              />
+            </div>
+            <div className="text-center mb-3">
+              <p className="text-xs text-green-400 font-bold">{levelInfo[level].targetText}</p>
+            </div>
+            <div className="grid grid-cols-3 gap-2 text-center">
+              <div className="border border-green-800 p-2 rounded">
+                <div className="text-[10px] text-green-700">体重</div>
+                <div className="text-sm font-bold text-green-400">{levelInfo[level].stats.weight}</div>
+              </div>
+              <div className="border border-green-800 p-2 rounded">
+                <div className="text-[10px] text-green-700">腕立て</div>
+                <div className="text-sm font-bold text-green-400">{levelInfo[level].stats.pushup}</div>
+              </div>
+              <div className="border border-green-800 p-2 rounded">
+                <div className="text-[10px] text-green-700">3km走</div>
+                <div className="text-sm font-bold text-green-400">{levelInfo[level].stats.run}</div>
+              </div>
+            </div>
           </div>
         </div>
 

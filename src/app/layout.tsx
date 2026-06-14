@@ -32,6 +32,7 @@ export default function RootLayout({
     <a href="/coach" style={{color:"#4ade80"}}>🏋️ トレーニングメニュー</a>
     <a href="/fitness-test" style={{color:"#4ade80"}}>🥇 体力検定診断</a>
     <a href="/weight-log" style={{color:"#4ade80"}}>⚖️ 戦闘重量ログ</a>
+    <a href="/fitness-log" style={{color:"#4ade80"}}>📊 体力記録ログ</a>
   </nav>
   {children}
 </body>

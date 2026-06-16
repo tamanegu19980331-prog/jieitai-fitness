@@ -34,6 +34,8 @@ export default function RootLayout({
     <a href="/fitness-log" style={{color:"#4ade80"}}>📊 体力記録ログ</a>
     <a href="/chat" style={{color:"#4ade80"}}>💬 鬼教官に相談</a>
     <a href="/onboarding" style={{color:"#4ade80"}}>🪖 入隊テスト</a>
+    <a href="/profile" style={{color:"#4ade80"}}>👤 マイプロフィール</a>
+
   </nav>
   {children}
 </body>

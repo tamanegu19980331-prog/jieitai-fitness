@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Avatar, { getRankInfo } from "@/components/Avatar";
 
 type Step = "profile" | "calories" | "test" | "result";
 type ActivityLevel = "low" | "medium" | "high" | "very_high";
+type Division = "陸上自衛隊" | "海上自衛隊" | "航空自衛隊";
 
 const ACTIVITY_LABELS: Record<ActivityLevel, string> = {
   low: "ほぼ座っている（デスクワーク）",
@@ -20,51 +22,14 @@ const ACTIVITY_MULTIPLIERS: Record<ActivityLevel, number> = {
   very_high: 1.725,
 };
 
+const DIVISION_ICONS: Record<Division, string> = {
+  陸上自衛隊: "🪖",
+  海上自衛隊: "⚓",
+  航空自衛隊: "✈️",
+};
+
 function calcBMR(age: number, weight: number, height: number) {
   return 88.362 + 13.397 * weight + 4.799 * height - 5.677 * age;
-}
-
-function getRank(pushup: number, situp: number, squat: number) {
-  const total = pushup + situp + squat;
-  if (total >= 90) return { rank: "レンジャー", level: 3, color: "#f59e0b", icon: "⭐⭐⭐" };
-  if (total >= 60) return { rank: "一般隊員", level: 2, color: "#22c55e", icon: "⭐⭐" };
-  return { rank: "新隊員", level: 1, color: "#888", icon: "⭐" };
-}
-
-function Avatar({ level, color }: { level: number; color: string }) {
-  const bodyWidth = level === 3 ? 18 : level === 2 ? 24 : 30;
-  return (
-    <svg width="120" height="200" viewBox="0 0 120 200">
-      {/* 頭 */}
-      <circle cx="60" cy="30" r="20" fill={color} opacity="0.9" />
-      {/* 目 */}
-      <circle cx="53" cy="27" r="3" fill="#000" />
-      <circle cx="67" cy="27" r="3" fill="#000" />
-      {/* 口 */}
-      <path d={level >= 2 ? "M 50 35 Q 60 42 70 35" : "M 50 37 Q 60 32 70 37"} stroke="#000" strokeWidth="2" fill="none" />
-      {/* 胴体 */}
-      <ellipse cx="60" cy="100" rx={bodyWidth} ry="40" fill={color} opacity="0.85" />
-      {/* 腕 */}
-      <ellipse cx={60 - bodyWidth - 8} cy="90" rx="8" ry="28" fill={color} opacity="0.8" transform={`rotate(-10 ${60 - bodyWidth - 8} 90)`} />
-      <ellipse cx={60 + bodyWidth + 8} cy="90" rx="8" ry="28" fill={color} opacity="0.8" transform={`rotate(10 ${60 + bodyWidth + 8} 90)`} />
-      {/* 脚 */}
-      <ellipse cx="48" cy="160" rx="10" ry="32" fill={color} opacity="0.85" transform="rotate(3 48 160)" />
-      <ellipse cx="72" cy="160" rx="10" ry="32" fill={color} opacity="0.85" transform="rotate(-3 72 160)" />
-      {/* 腹筋ライン（レベル3のみ） */}
-      {level === 3 && (
-        <>
-          <line x1="54" y1="80" x2="54" y2="120" stroke="#0a0a0a" strokeWidth="1.5" opacity="0.4" />
-          <line x1="66" y1="80" x2="66" y2="120" stroke="#0a0a0a" strokeWidth="1.5" opacity="0.4" />
-          <line x1="45" y1="90" x2="75" y2="90" stroke="#0a0a0a" strokeWidth="1" opacity="0.3" />
-          <line x1="45" y1="103" x2="75" y2="103" stroke="#0a0a0a" strokeWidth="1" opacity="0.3" />
-          <line x1="45" y1="116" x2="75" y2="116" stroke="#0a0a0a" strokeWidth="1" opacity="0.3" />
-        </>
-      )}
-      {/* ヘルメット */}
-      <ellipse cx="60" cy="14" rx="22" ry="10" fill="#166534" opacity="0.9" />
-      <rect x="38" y="10" width="44" height="8" rx="2" fill="#166534" opacity="0.9" />
-    </svg>
-  );
 }
 
 export default function OnboardingPage() {
@@ -74,6 +39,7 @@ export default function OnboardingPage() {
   const [weight, setWeight] = useState("");
   const [height, setHeight] = useState("");
   const [activity, setActivity] = useState<ActivityLevel>("medium");
+  const [division, setDivision] = useState<Division>("陸上自衛隊");
   const [tdee, setTdee] = useState(0);
   const [testStep, setTestStep] = useState(0);
   const [timer, setTimer] = useState<number | null>(null);
@@ -98,7 +64,6 @@ export default function OnboardingPage() {
         if (prev === null || prev <= 1) {
           clearInterval(interval);
           setCounting(false);
-          // 終了音
           try {
             const ctx = new AudioContext();
             const osc = ctx.createOscillator();
@@ -120,28 +85,34 @@ export default function OnboardingPage() {
       setTimer(null);
       setCounting(false);
     } else {
-      // 結果保存
-      const rank = getRank(parseInt(pushup || "0"), parseInt(situp || "0"), parseInt(squat || "0"));
+      const initialScore = parseInt(pushup || "0") + parseInt(situp || "0") + parseInt(squat || "0");
       localStorage.setItem("user-profile", JSON.stringify({
-        age, weight, height, activity, tdee,
+        age, weight, height, activity, tdee, division,
         pushup, situp, squat,
-        rank: rank.rank,
-        level: rank.level,
+        initialScore,
+        level: 0,
+        streakDays: 0,
+        weightLost: 0,
+        createdAt: new Date().toISOString(),
       }));
       setStep("result");
     }
   };
 
   const testItems = [
-    { label: "腕立て伏せ", value: pushup, set: setPushup, seconds: 30 },
-    { label: "腹筋（上体起こし）", value: situp, set: setSitup, seconds: 30 },
-    { label: "スクワット", value: squat, set: setSquat, seconds: 30 },
+    { label: "腕立て伏せ", value: pushup, set: setPushup, seconds: 30, icon: "💪" },
+    { label: "腹筋（上体起こし）", value: situp, set: setSitup, seconds: 30, icon: "🔥" },
+    { label: "スクワット", value: squat, set: setSquat, seconds: 30, icon: "🦵" },
   ];
 
   const current = testItems[testStep];
-  const rank = getRank(parseInt(pushup || "0"), parseInt(situp || "0"), parseInt(squat || "0"));
+  const rankInfo = getRankInfo(division, 0);
 
-  const s = { width: "100%", backgroundColor: "#1a1a1a", border: "1px solid #333", borderRadius: "6px", padding: "10px 14px", color: "#fff", fontSize: "16px", boxSizing: "border-box" as const };
+  const s = {
+    width: "100%", backgroundColor: "#1a1a1a", border: "1px solid #333",
+    borderRadius: "6px", padding: "10px 14px", color: "#fff",
+    fontSize: "16px", boxSizing: "border-box" as const
+  };
 
   return (
     <div style={{ minHeight: "100vh", backgroundColor: "#0a0a0a", color: "#fff", fontFamily: "sans-serif", padding: "2rem 1rem" }}>
@@ -170,6 +141,19 @@ export default function OnboardingPage() {
                   </div>
                 </div>
               ))}
+
+              <div>
+                <label style={{ color: "#888", fontSize: "12px", display: "block", marginBottom: "6px" }}>所属部隊</label>
+                <div style={{ display: "flex", gap: "8px" }}>
+                  {(["陸上自衛隊", "海上自衛隊", "航空自衛隊"] as Division[]).map((d) => (
+                    <button key={d} onClick={() => setDivision(d)}
+                      style={{ flex: 1, padding: "10px 6px", borderRadius: "6px", border: "1px solid", cursor: "pointer", fontSize: "12px", textAlign: "center", borderColor: division === d ? "#22c55e" : "#333", backgroundColor: division === d ? "#14532d" : "#1a1a1a", color: division === d ? "#22c55e" : "#888" }}>
+                      <div style={{ fontSize: "20px", marginBottom: "4px" }}>{DIVISION_ICONS[d]}</div>
+                      {d}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
               <div>
                 <label style={{ color: "#888", fontSize: "12px", display: "block", marginBottom: "6px" }}>活動量</label>
@@ -234,15 +218,12 @@ export default function OnboardingPage() {
               <p style={{ color: "#888", fontSize: "14px", margin: 0 }}>{testStep + 1} / 3 種目</p>
             </div>
 
-            {/* 進捗バー */}
             <div style={{ backgroundColor: "#1a1a1a", borderRadius: "4px", height: "4px", marginBottom: "2rem" }}>
               <div style={{ backgroundColor: "#22c55e", height: "4px", borderRadius: "4px", width: `${((testStep + 1) / 3) * 100}%`, transition: "width 0.3s" }} />
             </div>
 
             <div style={{ backgroundColor: "#111", border: "1px solid #222", borderRadius: "8px", padding: "2rem", marginBottom: "2rem", textAlign: "center" }}>
-              <p style={{ fontSize: "32px", margin: "0 0 8px" }}>
-                {testStep === 0 ? "💪" : testStep === 1 ? "🔥" : "🦵"}
-              </p>
+              <p style={{ fontSize: "32px", margin: "0 0 8px" }}>{current.icon}</p>
               <h2 style={{ fontSize: "22px", fontWeight: "700", margin: "0 0 8px" }}>{current.label}</h2>
               <p style={{ color: "#888", fontSize: "14px", margin: "0 0 2rem" }}>{current.seconds}秒間で何回できるか計測せよ</p>
 
@@ -280,14 +261,15 @@ export default function OnboardingPage() {
               <p style={{ color: "#888", fontSize: "14px", margin: 0 }}>お前の階級が決まった</p>
             </div>
 
-            <div style={{ textAlign: "center", marginBottom: "2rem" }}>
-              <Avatar level={rank.level} color={rank.color} />
-              <p style={{ fontSize: "28px", fontWeight: "700", color: rank.color, margin: "1rem 0 4px" }}>{rank.icon} {rank.rank}</p>
-              <p style={{ color: "#888", fontSize: "14px", margin: 0 }}>これがお前の現在の階級だ</p>
+            <div style={{ textAlign: "center", marginBottom: "1rem" }}>
+              <Avatar level={0} color={rankInfo.color} animate={true} />
+              <p style={{ fontSize: "14px", color: "#888", margin: "4px 0 2px" }}>{DIVISION_ICONS[division]} {division}</p>
+              <p style={{ fontSize: "24px", fontWeight: "700", color: rankInfo.color, margin: "0 0 4px" }}>{rankInfo.stars} {rankInfo.name}</p>
+              <p style={{ color: "#666", fontSize: "12px", margin: 0 }}>トレーニングを続けて階級を上げろ！</p>
             </div>
 
-            <div style={{ backgroundColor: "#111", border: "1px solid #222", borderRadius: "8px", padding: "1.5rem", marginBottom: "2rem" }}>
-              <p style={{ color: "#888", fontSize: "12px", margin: "0 0 1rem", letterSpacing: "0.1em" }}>テスト結果</p>
+            <div style={{ backgroundColor: "#111", border: "1px solid #222", borderRadius: "8px", padding: "1.5rem", marginBottom: "1.5rem" }}>
+              <p style={{ color: "#888", fontSize: "12px", margin: "0 0 1rem", letterSpacing: "0.1em" }}>入隊テスト結果</p>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px", textAlign: "center" }}>
                 {[
                   { label: "腕立て", value: pushup },
@@ -296,7 +278,7 @@ export default function OnboardingPage() {
                 ].map((item) => (
                   <div key={item.label}>
                     <p style={{ color: "#888", fontSize: "11px", margin: "0 0 4px" }}>{item.label}</p>
-                    <p style={{ fontSize: "24px", fontWeight: "700", margin: 0, color: rank.color }}>{item.value || "0"}回</p>
+                    <p style={{ fontSize: "24px", fontWeight: "700", margin: 0, color: rankInfo.color }}>{item.value || "0"}回</p>
                   </div>
                 ))}
               </div>

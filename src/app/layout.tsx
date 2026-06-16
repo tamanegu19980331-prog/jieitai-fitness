@@ -35,6 +35,8 @@ export default function RootLayout({
     <a href="/chat" style={{color:"#4ade80"}}>💬 鬼教官に相談</a>
     <a href="/onboarding" style={{color:"#4ade80"}}>🪖 入隊テスト</a>
     <a href="/profile" style={{color:"#4ade80"}}>👤 マイプロフィール</a>
+    <a href="/calendar" style={{color:"#4ade80"}}>📅 訓練カレンダー</a>
+    <a href="/weekly" style={{color:"#4ade80"}}>📋 週間メニュー</a>
 
   </nav>
   {children}

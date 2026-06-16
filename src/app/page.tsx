@@ -117,8 +117,7 @@ export default function Home() {
           </p>
           <p className="mb-4 text-sm leading-relaxed text-[#a8c4a0]">
             このアプリは、俺が実際に経験した自衛隊式メソッドをAIで再現したものだ。
-            公務員・消防・警察を目指す人、本気でダイエットしたい人に届けたい。
-          </p>
+            本気でダイエットしたい人、体を変えたい人に届けたい。          </p>
           <div className="border-t border-[#2d4a2d] pt-3">
             <p className="text-[11px] tracking-[0.2em] text-[#5a8a5a]">元自衛隊 × パーソナルトレーナー</p>
           </div>

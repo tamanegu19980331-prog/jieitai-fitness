@@ -72,8 +72,7 @@ export default function WeeklyPage() {
         <div style={{ marginBottom: "2rem" }}>
           <p style={{ color: "#22c55e", fontSize: "12px", letterSpacing: "0.15em", margin: "0 0 4px" }}>WEEKLY MENU</p>
           <h1 style={{ fontSize: "24px", fontWeight: "700", margin: "0 0 8px" }}>1週間トレーニングメニュー</h1>
-          <p style={{ color: "#888", fontSize: "14px", margin: 0 }}>目標と部隊を選んでAIがメニューを策定する</p>
-        </div>
+          <p style={{ color: "#888", fontSize: "14px", margin: 0 }}>目標と部隊を選んでメニューを策定する</p>        </div>
 
         {/* 目標選択 */}
         <div style={{ marginBottom: "1.5rem" }}>

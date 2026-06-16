@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 type JobType = "自衛隊" | "消防士" | "警察官";
@@ -11,16 +11,19 @@ type FitnessEntry = {
   pushup: number | null;
   situp: number | null;
   pullup: number | null;
+  lateral: number | null;
+  grip: number | null;
+  jump: number | null;
   run_min: number | null;
   run_sec: number | null;
   weight: number | null;
   body_fat: number | null;
 };
 
-const STANDARDS: Record<JobType, { pushup: number; situp: number; pullup: number; run: number }> = {
-  自衛隊: { pushup: 20, situp: 30, pullup: 5, run: 810 },
-  消防士: { pushup: 30, situp: 30, pullup: 8, run: 720 },
-  警察官: { pushup: 25, situp: 25, pullup: 6, run: 780 },
+const STANDARDS: Record<JobType, { pushup: number; situp: number; pullup: number; run: number; lateral: number; grip: number; jump: number }> = {
+  自衛隊: { pushup: 44, situp: 48, pullup: 5, run: 875, lateral: 0, grip: 0, jump: 0 },
+  消防士: { pushup: 30, situp: 25, pullup: 6, run: 720, lateral: 50, grip: 50, jump: 220 },
+  警察官: { pushup: 30, situp: 25, pullup: 0, run: 780, lateral: 45, grip: 45, jump: 0 },
 };
 
 const getDeviceId = () => {
@@ -32,6 +35,53 @@ const getDeviceId = () => {
   return id;
 };
 
+function TimerButton({ label, seconds, onComplete }: { label: string; seconds: number; onComplete: () => void }) {
+  const [timeLeft, setTimeLeft] = useState<number | null>(null);
+  const [running, setRunning] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const start = () => {
+    if (running) {
+      clearInterval(timerRef.current!);
+      setRunning(false);
+      setTimeLeft(null);
+      return;
+    }
+    setTimeLeft(seconds);
+    setRunning(true);
+    let t = seconds;
+    timerRef.current = setInterval(() => {
+      t -= 1;
+      setTimeLeft(t);
+      if (t <= 0) {
+        clearInterval(timerRef.current!);
+        setRunning(false);
+        setTimeLeft(null);
+        // 終了音
+        const ctx = new AudioContext();
+        const osc = ctx.createOscillator();
+        osc.connect(ctx.destination);
+        osc.frequency.value = 880;
+        osc.start();
+        osc.stop(ctx.currentTime + 0.3);
+        onComplete();
+      }
+    }, 1000);
+  };
+
+  return (
+    <button onClick={start} style={{
+      padding: "6px 10px", borderRadius: "6px", border: "1px solid",
+      borderColor: running ? "#ef4444" : "#22c55e",
+      backgroundColor: running ? "#2a0f0f" : "#0f2a1a",
+      color: running ? "#ef4444" : "#22c55e",
+      fontSize: "12px", cursor: "pointer", whiteSpace: "nowrap"
+    }}>
+      {running ? `⏱ ${timeLeft}秒` : `▶ ${label}${seconds}秒`}
+    </button>
+  );
+}
+
 export default function FitnessLogPage() {
   const [entries, setEntries] = useState<FitnessEntry[]>([]);
   const [jobType, setJobType] = useState<JobType>("消防士");
@@ -39,12 +89,18 @@ export default function FitnessLogPage() {
   const [pushup, setPushup] = useState("");
   const [situp, setSitup] = useState("");
   const [pullup, setPullup] = useState("");
+  const [lateral, setLateral] = useState("");
+  const [grip, setGrip] = useState("");
+  const [jump, setJump] = useState("");
   const [runMin, setRunMin] = useState("");
   const [runSec, setRunSec] = useState("");
   const [weight, setWeight] = useState("");
   const [bodyFat, setBodyFat] = useState("");
   const [saved, setSaved] = useState(false);
   const [activeTab, setActiveTab] = useState<"fitness" | "body">("fitness");
+
+  const situpRef = useRef<HTMLInputElement>(null);
+  const lateralRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const deviceId = getDeviceId();
@@ -67,6 +123,9 @@ export default function FitnessLogPage() {
       pushup: pushup ? parseInt(pushup) : null,
       situp: situp ? parseInt(situp) : null,
       pullup: pullup ? parseInt(pullup) : null,
+      lateral: lateral ? parseInt(lateral) : null,
+      grip: grip ? parseInt(grip) : null,
+      jump: jump ? parseInt(jump) : null,
       run_min: runMin ? parseInt(runMin) : null,
       run_sec: runSec ? parseInt(runSec) : null,
       weight: weight ? parseFloat(weight) : null,
@@ -77,6 +136,7 @@ export default function FitnessLogPage() {
       .slice(0, 90);
     save(updated);
     setPushup(""); setSitup(""); setPullup("");
+    setLateral(""); setGrip(""); setJump("");
     setRunMin(""); setRunSec(""); setWeight(""); setBodyFat("");
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
@@ -95,6 +155,7 @@ export default function FitnessLogPage() {
   const standards = STANDARDS[jobType];
 
   const getStatus = (value: number | null, target: number, isRun = false) => {
+    if (target === 0) return { color: "#888", label: "対象外", diff: null };
     if (value === null) return { color: "#888", label: "未記録", diff: null };
     if (isRun) {
       const diff = value - target;
@@ -122,6 +183,7 @@ export default function FitnessLogPage() {
       腕立て: e.pushup,
       腹筋: e.situp,
       懸垂: e.pullup,
+      反復横跳び: e.lateral,
     }));
 
   const chartDataBody = [...entries]
@@ -132,6 +194,12 @@ export default function FitnessLogPage() {
       体重: e.weight,
       体脂肪率: e.body_fat,
     }));
+
+  const inputStyle = {
+    width: "100%", backgroundColor: "#1a1a1a", border: "1px solid #333",
+    borderRadius: "6px", padding: "8px 10px", color: "#fff",
+    fontSize: "14px", boxSizing: "border-box" as const
+  };
 
   return (
     <div style={{ minHeight: "100vh", backgroundColor: "#0a0a0a", color: "#ffffff", fontFamily: "sans-serif", padding: "2rem 1rem" }}>
@@ -153,6 +221,33 @@ export default function FitnessLogPage() {
                 {job}
               </button>
             ))}
+          </div>
+        </div>
+
+        {/* 合格基準表 */}
+        <div style={{ backgroundColor: "#111", border: "1px solid #222", borderRadius: "8px", overflow: "hidden", marginBottom: "1.5rem" }}>
+          <div style={{ padding: "1rem 1.5rem", borderBottom: "1px solid #222" }}>
+            <p style={{ color: "#22c55e", fontSize: "12px", margin: 0, letterSpacing: "0.1em" }}>{jobType}の合格基準</p>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: "0" }}>
+            {[
+              { label: "腕立て", value: standards.pushup > 0 ? standards.pushup + "回" : "---", unit: "以上" },
+              { label: "腹筋", value: standards.situp > 0 ? standards.situp + "回" : "---", unit: "30秒" },
+              { label: "懸垂", value: standards.pullup > 0 ? standards.pullup + "回" : "---", unit: "以上" },
+              { label: "反復横跳び", value: standards.lateral > 0 ? standards.lateral + "回" : "---", unit: "20秒" },
+              { label: "握力", value: standards.grip > 0 ? standards.grip + "kg" : "---", unit: "以上" },
+              { label: "立ち幅跳び", value: standards.jump > 0 ? standards.jump + "cm" : "---", unit: "以上" },
+              { label: "3km走", value: standards.run > 0 ? `${Math.floor(standards.run / 60)}:${String(standards.run % 60).padStart(2, "0")}` : "---", unit: "以内" },
+            ].map((item, i) => (
+              <div key={item.label} style={{ padding: "0.8rem 0.4rem", textAlign: "center", borderRight: i < 6 ? "1px solid #1a1a1a" : "none" }}>
+                <p style={{ color: "#888", fontSize: "10px", margin: "0 0 4px" }}>{item.label}</p>
+                <p style={{ fontSize: "14px", fontWeight: "700", margin: "0 0 2px", color: "#22c55e" }}>{item.value}</p>
+                <p style={{ color: "#666", fontSize: "10px", margin: 0 }}>{item.unit}</p>
+              </div>
+            ))}
+          </div>
+          <div style={{ padding: "8px 1.5rem", borderTop: "1px solid #1a1a1a" }}>
+            <p style={{ color: "#555", fontSize: "11px", margin: 0 }}>※自治体・採用年度により異なります</p>
           </div>
         </div>
 
@@ -200,6 +295,7 @@ export default function FitnessLogPage() {
                 <Line type="monotone" dataKey="腕立て" stroke="#22c55e" strokeWidth={2} dot={false} />
                 <Line type="monotone" dataKey="腹筋" stroke="#3b82f6" strokeWidth={2} dot={false} />
                 <Line type="monotone" dataKey="懸垂" stroke="#f59e0b" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="反復横跳び" stroke="#ec4899" strokeWidth={2} dot={false} />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -227,35 +323,62 @@ export default function FitnessLogPage() {
 
           <div style={{ marginBottom: "1rem" }}>
             <label style={{ color: "#888", fontSize: "12px", display: "block", marginBottom: "6px" }}>記録日</label>
-            <input type="date" value={date} onChange={(e) => setDate(e.target.value)}
-              style={{ width: "100%", backgroundColor: "#1a1a1a", border: "1px solid #333", borderRadius: "6px", padding: "8px 10px", color: "#fff", fontSize: "14px", boxSizing: "border-box" }} />
+            <input type="date" value={date} onChange={(e) => setDate(e.target.value)} style={inputStyle} />
           </div>
 
           {activeTab === "fitness" && (
             <>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px", marginBottom: "1rem" }}>
-                {[
-                  { label: "腕立て（回）", value: pushup, set: setPushup },
-                  { label: "腹筋（回）", value: situp, set: setSitup },
-                  { label: "懸垂（回）", value: pullup, set: setPullup },
-                ].map((field) => (
-                  <div key={field.label}>
-                    <label style={{ color: "#888", fontSize: "12px", display: "block", marginBottom: "6px" }}>{field.label}</label>
-                    <input type="number" value={field.value} onChange={(e) => field.set(e.target.value)} placeholder="0"
-                      style={{ width: "100%", backgroundColor: "#1a1a1a", border: "1px solid #333", borderRadius: "6px", padding: "8px 10px", color: "#fff", fontSize: "14px", boxSizing: "border-box" }} />
-                  </div>
-                ))}
+              {/* 腕立て */}
+              <div style={{ marginBottom: "1rem" }}>
+                <label style={{ color: "#888", fontSize: "12px", display: "block", marginBottom: "6px" }}>腕立て（回）</label>
+                <input type="number" value={pushup} onChange={(e) => setPushup(e.target.value)} placeholder="0" style={inputStyle} />
               </div>
+
+              {/* 腹筋 タイマーあり */}
+              <div style={{ marginBottom: "1rem" }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "6px" }}>
+                  <label style={{ color: "#888", fontSize: "12px" }}>腹筋（30秒・回）</label>
+                  <TimerButton label="計測 " seconds={30} onComplete={() => situpRef.current?.focus()} />
+                </div>
+                <input ref={situpRef} type="number" value={situp} onChange={(e) => setSitup(e.target.value)} placeholder="0" style={inputStyle} />
+              </div>
+
+              {/* 懸垂 */}
+              <div style={{ marginBottom: "1rem" }}>
+                <label style={{ color: "#888", fontSize: "12px", display: "block", marginBottom: "6px" }}>懸垂（回）</label>
+                <input type="number" value={pullup} onChange={(e) => setPullup(e.target.value)} placeholder="0" style={inputStyle} />
+              </div>
+
+              {/* 反復横跳び タイマーあり */}
+              <div style={{ marginBottom: "1rem" }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "6px" }}>
+                  <label style={{ color: "#888", fontSize: "12px" }}>反復横跳び（20秒・回）</label>
+                  <TimerButton label="計測 " seconds={20} onComplete={() => lateralRef.current?.focus()} />
+                </div>
+                <input ref={lateralRef} type="number" value={lateral} onChange={(e) => setLateral(e.target.value)} placeholder="0" style={inputStyle} />
+              </div>
+
+              {/* 握力・立ち幅跳び */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "1rem" }}>
+                <div>
+                  <label style={{ color: "#888", fontSize: "12px", display: "block", marginBottom: "6px" }}>握力（kg）</label>
+                  <input type="number" value={grip} onChange={(e) => setGrip(e.target.value)} placeholder="0" style={inputStyle} />
+                </div>
+                <div>
+                  <label style={{ color: "#888", fontSize: "12px", display: "block", marginBottom: "6px" }}>立ち幅跳び（cm）</label>
+                  <input type="number" value={jump} onChange={(e) => setJump(e.target.value)} placeholder="0" style={inputStyle} />
+                </div>
+              </div>
+
+              {/* 3km走 */}
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "1rem" }}>
                 <div>
                   <label style={{ color: "#888", fontSize: "12px", display: "block", marginBottom: "6px" }}>3km走（分）</label>
-                  <input type="number" value={runMin} onChange={(e) => setRunMin(e.target.value)} placeholder="13"
-                    style={{ width: "100%", backgroundColor: "#1a1a1a", border: "1px solid #333", borderRadius: "6px", padding: "8px 10px", color: "#fff", fontSize: "14px", boxSizing: "border-box" }} />
+                  <input type="number" value={runMin} onChange={(e) => setRunMin(e.target.value)} placeholder="13" style={inputStyle} />
                 </div>
                 <div>
                   <label style={{ color: "#888", fontSize: "12px", display: "block", marginBottom: "6px" }}>3km走（秒）</label>
-                  <input type="number" value={runSec} onChange={(e) => setRunSec(e.target.value)} placeholder="30"
-                    style={{ width: "100%", backgroundColor: "#1a1a1a", border: "1px solid #333", borderRadius: "6px", padding: "8px 10px", color: "#fff", fontSize: "14px", boxSizing: "border-box" }} />
+                  <input type="number" value={runSec} onChange={(e) => setRunSec(e.target.value)} placeholder="30" style={inputStyle} />
                 </div>
               </div>
             </>
@@ -265,13 +388,11 @@ export default function FitnessLogPage() {
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "1rem" }}>
               <div>
                 <label style={{ color: "#888", fontSize: "12px", display: "block", marginBottom: "6px" }}>体重（kg）</label>
-                <input type="number" value={weight} onChange={(e) => setWeight(e.target.value)} placeholder="70.0"
-                  style={{ width: "100%", backgroundColor: "#1a1a1a", border: "1px solid #333", borderRadius: "6px", padding: "8px 10px", color: "#fff", fontSize: "14px", boxSizing: "border-box" }} />
+                <input type="number" value={weight} onChange={(e) => setWeight(e.target.value)} placeholder="70.0" style={inputStyle} />
               </div>
               <div>
                 <label style={{ color: "#888", fontSize: "12px", display: "block", marginBottom: "6px" }}>体脂肪率（%）</label>
-                <input type="number" value={bodyFat} onChange={(e) => setBodyFat(e.target.value)} placeholder="18.0"
-                  style={{ width: "100%", backgroundColor: "#1a1a1a", border: "1px solid #333", borderRadius: "6px", padding: "8px 10px", color: "#fff", fontSize: "14px", boxSizing: "border-box" }} />
+                <input type="number" value={bodyFat} onChange={(e) => setBodyFat(e.target.value)} placeholder="18.0" style={inputStyle} />
               </div>
             </div>
           )}
@@ -295,6 +416,9 @@ export default function FitnessLogPage() {
                   {entry.pushup !== null && `腕立て${entry.pushup} `}
                   {entry.situp !== null && `腹筋${entry.situp} `}
                   {entry.pullup !== null && `懸垂${entry.pullup} `}
+                  {entry.lateral !== null && `反復${entry.lateral} `}
+                  {entry.grip !== null && `握力${entry.grip}kg `}
+                  {entry.jump !== null && `幅跳${entry.jump}cm `}
                   {entry.run_min !== null && `走${entry.run_min}:${String(entry.run_sec).padStart(2, "0")} `}
                   {entry.weight !== null && `${entry.weight}kg `}
                   {entry.body_fat !== null && `${entry.body_fat}%`}

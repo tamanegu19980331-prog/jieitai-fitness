@@ -31,8 +31,8 @@ export default function RootLayout({
   <nav style={{display:"flex", gap:"16px", padding:"12px 20px", borderBottom:"1px solid #333"}}>
     <a href="/coach" style={{color:"#4ade80"}}>🏋️ トレーニングメニュー</a>
     <a href="/fitness-test" style={{color:"#4ade80"}}>🥇 体力検定診断</a>
-    <a href="/weight-log" style={{color:"#4ade80"}}>⚖️ 戦闘重量ログ</a>
     <a href="/fitness-log" style={{color:"#4ade80"}}>📊 体力記録ログ</a>
+    <a href="/chat" style={{color:"#4ade80"}}>💬 鬼教官に相談</a>
   </nav>
   {children}
 </body>

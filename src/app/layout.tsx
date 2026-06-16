@@ -33,6 +33,7 @@ export default function RootLayout({
     <a href="/fitness-test" style={{color:"#4ade80"}}>🥇 体力検定診断</a>
     <a href="/fitness-log" style={{color:"#4ade80"}}>📊 体力記録ログ</a>
     <a href="/chat" style={{color:"#4ade80"}}>💬 鬼教官に相談</a>
+    <a href="/onboarding" style={{color:"#4ade80"}}>🪖 入隊テスト</a>
   </nav>
   {children}
 </body>

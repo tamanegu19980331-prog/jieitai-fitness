@@ -7,6 +7,8 @@ type Message = {
   content: string;
 };
 
+const MAX_COUNT = 10;
+
 export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -16,7 +18,21 @@ export default function ChatPage() {
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [chatCount, setChatCount] = useState(0);
   const bottomRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const today = new Date().toISOString().split("T")[0];
+    const stored = localStorage.getItem("chat-count");
+    if (stored) {
+      const { date, count } = JSON.parse(stored);
+      if (date === today) {
+        setChatCount(count);
+      } else {
+        localStorage.setItem("chat-count", JSON.stringify({ date: today, count: 0 }));
+      }
+    }
+  }, []);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -24,6 +40,12 @@ export default function ChatPage() {
 
   const handleSend = async () => {
     if (!input.trim() || loading) return;
+    if (chatCount >= MAX_COUNT) return;
+
+    const today = new Date().toISOString().split("T")[0];
+    const newCount = chatCount + 1;
+    setChatCount(newCount);
+    localStorage.setItem("chat-count", JSON.stringify({ date: today, count: newCount }));
 
     const userMessage: Message = { role: "user", content: input };
     const newMessages = [...messages, userMessage];
@@ -49,7 +71,7 @@ export default function ChatPage() {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
+    if (e.key === "Enter" && e.shiftKey) {
       e.preventDefault();
       handleSend();
     }
@@ -62,14 +84,25 @@ export default function ChatPage() {
     "体重を1ヶ月で5kg落としたい",
   ];
 
+  const remaining = MAX_COUNT - chatCount;
+
   return (
     <div style={{ minHeight: "100vh", backgroundColor: "#0a0a0a", color: "#ffffff", fontFamily: "sans-serif", display: "flex", flexDirection: "column" }}>
 
       {/* ヘッダー */}
       <div style={{ backgroundColor: "#111", borderBottom: "1px solid #222", padding: "1rem 1.5rem" }}>
-        <p style={{ color: "#22c55e", fontSize: "12px", letterSpacing: "0.15em", margin: "0 0 2px" }}>AI COACH</p>
-        <h1 style={{ fontSize: "18px", fontWeight: "700", margin: "0 0 2px" }}>鬼教官に相談する</h1>
-        <p style={{ color: "#888", fontSize: "12px", margin: 0 }}>元自衛隊×パーソナルトレーナーが直接アドバイス</p>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+          <div>
+            <p style={{ color: "#22c55e", fontSize: "12px", letterSpacing: "0.15em", margin: "0 0 2px" }}>AI COACH</p>
+            <h1 style={{ fontSize: "18px", fontWeight: "700", margin: "0 0 2px" }}>鬼教官に相談する</h1>
+            <p style={{ color: "#888", fontSize: "12px", margin: 0 }}>元自衛隊×パーソナルトレーナーが直接アドバイス</p>
+          </div>
+          <div style={{ textAlign: "right" }}>
+            <p style={{ color: remaining <= 3 ? "#ef4444" : "#888", fontSize: "12px", margin: 0 }}>
+              本日残り{remaining}回
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* メッセージ一覧 */}
@@ -128,30 +161,38 @@ export default function ChatPage() {
 
       {/* 入力エリア */}
       <div style={{ backgroundColor: "#111", borderTop: "1px solid #222", padding: "1rem", position: "sticky", bottom: 0 }}>
-        <div style={{ maxWidth: "720px", margin: "0 auto", display: "flex", gap: "8px" }}>
-          <textarea
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="悩みや質問を入力せよ..."
-            rows={1}
-            style={{
-              flex: 1, backgroundColor: "#1a1a1a", border: "1px solid #333", borderRadius: "8px",
-              padding: "10px 14px", color: "#fff", fontSize: "14px", resize: "none",
-              outline: "none", lineHeight: "1.5"
-            }}
-          />
-          <button onClick={handleSend} disabled={loading || !input.trim()}
-            style={{
-              backgroundColor: loading || !input.trim() ? "#1a1a1a" : "#22c55e",
-              color: loading || !input.trim() ? "#555" : "#000",
-              border: "none", borderRadius: "8px", padding: "10px 16px",
-              fontSize: "14px", fontWeight: "700", cursor: loading || !input.trim() ? "not-allowed" : "pointer"
-            }}>
-            送信
-          </button>
+        <div style={{ maxWidth: "720px", margin: "0 auto" }}>
+          {chatCount >= MAX_COUNT ? (
+            <div style={{ textAlign: "center", padding: "1rem", backgroundColor: "#1a1a1a", border: "1px solid #333", borderRadius: "8px", color: "#888", fontSize: "14px" }}>
+              本日の相談上限（{MAX_COUNT}回）に達した。明日また来い。
+            </div>
+          ) : (
+            <div style={{ display: "flex", gap: "8px" }}>
+              <textarea
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="悩みや質問を入力せよ..."
+                rows={1}
+                style={{
+                  flex: 1, backgroundColor: "#1a1a1a", border: "1px solid #333", borderRadius: "8px",
+                  padding: "10px 14px", color: "#fff", fontSize: "14px", resize: "none",
+                  outline: "none", lineHeight: "1.5"
+                }}
+              />
+              <button onClick={handleSend} disabled={loading || !input.trim()}
+                style={{
+                  backgroundColor: loading || !input.trim() ? "#1a1a1a" : "#22c55e",
+                  color: loading || !input.trim() ? "#555" : "#000",
+                  border: "none", borderRadius: "8px", padding: "10px 16px",
+                  fontSize: "14px", fontWeight: "700", cursor: loading || !input.trim() ? "not-allowed" : "pointer"
+                }}>
+                送信
+              </button>
+            </div>
+          )}
+          <p style={{ color: "#444", fontSize: "11px", textAlign: "center", margin: "8px 0 0" }}>Enterで送信 / Shift+Enterで改行</p>
         </div>
-        <p style={{ color: "#444", fontSize: "11px", textAlign: "center", margin: "8px 0 0" }}>Enterで送信 / Shift+Enterで改行</p>
       </div>
     </div>
   );
